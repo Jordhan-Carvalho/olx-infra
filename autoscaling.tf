@@ -25,17 +25,7 @@ resource "aws_autoscaling_group" "autoscaling-backend" {
   }
 }
 
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy
-# Without this policy autoscale would only replace failing ec2 instances
-resource "aws_autoscaling_policy" "scale-up-policy" {
-  name                   = "scale-up-policy"
-  scaling_adjustment     = 1
-  adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.autoscaling-backend.name
-}
-
-# Cloudwatch alarm to be used on the autoscaling autoscaling_policy
+# Cloudwatch alarm to be used on the autoscaling scale up
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_up" {
   alarm_name          = "cpu_alarm_up"
@@ -53,6 +43,16 @@ resource "aws_cloudwatch_metric_alarm" "cpu_alarm_up" {
 
   alarm_description = "This metric monitors ec2 cpu utilization"
   alarm_actions     = [aws_autoscaling_policy.scale-up-policy.arn]
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy
+# Without this policy autoscale would only replace failing ec2 instances
+resource "aws_autoscaling_policy" "scale-up-policy" {
+  name                   = "scale-up-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.autoscaling-backend.name
 }
 
 # Scale down alarm and policy
